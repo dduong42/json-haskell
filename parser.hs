@@ -4,7 +4,7 @@ import Data.Char (isControl)
 newtype Parser a = Parser (String -> [(a, String)])
 type Object = [(String, Value)]
 data Value = StrValue String | ObjValue Object | BoolValue Bool | ArrValue [Value]
-             | Null
+             | Null deriving (Show)
 
 
 instance Monad Parser where
@@ -108,13 +108,17 @@ many1 p = do { c <- p
              }
 
 
-jsonString :: Parser String
+jsonString :: Parser Value
 jsonString = do { char '"'
                 ; x <- many jsonChar
                 ; char '"'
-                ; return x
+                ; return (StrValue x)
                 }
 
 
-jsonBool :: Parser Bool
-jsonBool = do {string "true"; return True} <|> do {string "false"; return False}
+jsonBool :: Parser Value
+jsonBool = do {string "true"; return (BoolValue True)} <|> do {string "false"; return (BoolValue False)}
+
+
+jsonValue :: Parser Value
+jsonValue = jsonString <|> jsonBool
