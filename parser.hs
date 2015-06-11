@@ -120,5 +120,19 @@ jsonBool :: Parser Value
 jsonBool = do {string "true"; return (BoolValue True)} <|> do {string "false"; return (BoolValue False)}
 
 
+jsonNull :: Parser Value
+jsonNull = do {string "null"; return Null}
+
+
 jsonValue :: Parser Value
-jsonValue = jsonString <|> jsonBool
+jsonValue = jsonString <|> jsonBool <|> jsonArray <|> jsonNull
+
+
+jsonArray :: Parser Value
+jsonArray = do {char '['; char ']'; return (ArrValue [])}
+            <|> do { char '['
+                   ; x <- jsonValue
+                   ; xs <- many (do {char ','; y <- jsonValue; return y})
+                   ; char ']'
+                   ; return (ArrValue (x:xs))
+                   }
