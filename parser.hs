@@ -33,6 +33,14 @@ char :: Char -> Parser Char
 char c = filterParser (\x -> x == c) item
 
 
+string :: String -> Parser String
+string [] = return []
+string (x:xs) = do { y <- char x
+                   ; ys <- string xs
+                   ; return (y:ys)
+                   }
+
+
 normalUTFChar :: Parser Char
 normalUTFChar = filterParser filterFunc item
     where filterFunc c = c /= '\\' && c /= '"' && not (isControl c)
