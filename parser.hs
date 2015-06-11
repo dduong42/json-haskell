@@ -2,6 +2,9 @@ import Data.Char (isControl)
 
 
 newtype Parser a = Parser (String -> [(a, String)])
+type Object = [(String, Value)]
+data Value = StrValue String | ObjValue Object | BoolValue Bool | ArrValue [Value]
+             | Null
 
 
 instance Monad Parser where
