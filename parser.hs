@@ -114,3 +114,7 @@ jsonString = do { char '"'
                 ; char '"'
                 ; return x
                 }
+
+
+jsonBool :: Parser Bool
+jsonBool = do {string "true"; return True} <|> do {string "false"; return False}
