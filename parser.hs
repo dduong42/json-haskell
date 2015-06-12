@@ -108,11 +108,11 @@ many1 p = do { c <- p
              }
 
 
-jsonString :: Parser Value
+jsonString :: Parser String
 jsonString = do { char '"'
                 ; x <- many jsonChar
                 ; char '"'
-                ; return (StrValue x)
+                ; return x
                 }
 
 
@@ -125,7 +125,8 @@ jsonNull = do {string "null"; return Null}
 
 
 jsonValue :: Parser Value
-jsonValue = jsonString <|> jsonBool <|> jsonArray <|> jsonNull
+jsonValue = jsonBool <|> jsonArray <|> jsonNull <|> do {s <- jsonString; return (StrValue s)}
+            <|> do {obj <- jsonObject; return (ObjValue obj)}
 
 
 jsonArray :: Parser Value
@@ -136,3 +137,16 @@ jsonArray = do {char '['; char ']'; return (ArrValue [])}
                    ; char ']'
                    ; return (ArrValue (x:xs))
                    }
+
+
+jsonObject :: Parser Object
+jsonObject = do {char '{'; char '}'; return []}
+             <|> do { char '{'
+                    ; s <- jsonString
+                    ; char ':'
+                    ; v <- jsonValue
+                    ; let x = (s, v)
+                    ; xs <- many (do {char ','; s <- jsonString; char ':'; v <- jsonValue; return (s, v)})
+                    ; char '}'
+                    ; return (x:xs)
+                    }
