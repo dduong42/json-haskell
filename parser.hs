@@ -4,7 +4,7 @@ import Data.Char (isControl)
 newtype Parser a = Parser (String -> [(a, String)])
 type Object = [(String, Value)]
 data Value = StrValue String | ObjValue Object | BoolValue Bool | ArrValue [Value]
-             | Null deriving (Show)
+             | IntValue Int | Null deriving (Show)
 
 
 instance Monad Parser where
@@ -126,6 +126,7 @@ jsonNull = do {string "null"; return Null}
 
 jsonValue :: Parser Value
 jsonValue = jsonBool <|> jsonArray <|> jsonNull <|> do {s <- jsonString; return (StrValue s)}
+            <|> do {n <- jsonInt; return (IntValue n)}
             <|> do {obj <- jsonObject; return (ObjValue obj)}
 
 
@@ -137,6 +138,35 @@ jsonArray = do {char '['; char ']'; return (ArrValue [])}
                    ; char ']'
                    ; return (ArrValue (x:xs))
                    }
+
+
+digit1 :: Parser Int
+digit1 =     do { char '1'; return 1 }
+         <|> do { char '2'; return 2 }
+         <|> do { char '3'; return 3 }
+         <|> do { char '4'; return 4 }
+         <|> do { char '5'; return 5 }
+         <|> do { char '6'; return 6 }
+         <|> do { char '7'; return 7 }
+         <|> do { char '8'; return 8 }
+         <|> do { char '9'; return 9 }
+
+
+digit :: Parser Int
+digit = do {char '0'; return 0} <|> digit1
+
+
+jsonInt :: Parser Int
+jsonInt = do { char '-'
+             ; n <- jsonPositiveInt
+             ; return (-n)
+             }
+          <|> jsonPositiveInt
+    where jsonPositiveInt :: Parser Int
+          jsonPositiveInt =     do { l <- many1 digit1
+                                   ; return (foldl (\acc d -> acc * 10 + d) 0 l)
+                                   }
+                            <|> do {char '0'; return 0}
 
 
 jsonObject :: Parser Object
