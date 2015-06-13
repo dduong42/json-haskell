@@ -14,8 +14,8 @@ instance Monad Parser where
     return x = Parser (\s -> [(x, s)])
 
 
-(<|>) :: Parser a -> Parser a -> Parser a
-Parser f <|> Parser g = Parser h
+(|>) :: Parser a -> Parser a -> Parser a
+Parser f |> Parser g = Parser h
     where h s = case f s of [] -> g s
                             _ -> f s
 
@@ -87,18 +87,18 @@ fourHexDigit = do { x3 <- hexDigit
 
 jsonChar :: Parser Char
 jsonChar =  normalUTFChar
-            <|> do {char '\\'; char '"'; return '"'}
-            <|> do {char '\\'; char '\\'; return '\\'}
-            <|> do {char '\\'; char 'b'; return '\b'}
-            <|> do {char '\\'; char 'f'; return '\f'}
-            <|> do {char '\\'; char 'n'; return '\n'}
-            <|> do {char '\\'; char 'r'; return '\r'}
-            <|> do {char '\\'; char 't'; return '\t'}
-            <|> do {char '\\'; char 'u'; n <- fourHexDigit; return (toEnum n)}
+            |> do {char '\\'; char '"'; return '"'}
+            |> do {char '\\'; char '\\'; return '\\'}
+            |> do {char '\\'; char 'b'; return '\b'}
+            |> do {char '\\'; char 'f'; return '\f'}
+            |> do {char '\\'; char 'n'; return '\n'}
+            |> do {char '\\'; char 'r'; return '\r'}
+            |> do {char '\\'; char 't'; return '\t'}
+            |> do {char '\\'; char 'u'; n <- fourHexDigit; return (toEnum n)}
 
 
 many :: Parser a -> Parser [a]
-many p = many1 p <|> return []
+many p = many1 p |> return []
 
 
 many1 :: Parser a -> Parser [a]
@@ -117,7 +117,7 @@ jsonString = do { char '"'
 
 
 jsonBool :: Parser Value
-jsonBool = do {string "true"; return (BoolValue True)} <|> do {string "false"; return (BoolValue False)}
+jsonBool = do {string "true"; return (BoolValue True)} |> do {string "false"; return (BoolValue False)}
 
 
 jsonNull :: Parser Value
@@ -125,14 +125,14 @@ jsonNull = do {string "null"; return Null}
 
 
 jsonValue :: Parser Value
-jsonValue = jsonBool <|> jsonArray <|> jsonNull <|> do {s <- jsonString; return (StrValue s)}
-            <|> do {n <- jsonInt; return (IntValue n)}
-            <|> do {obj <- jsonObject; return (ObjValue obj)}
+jsonValue = jsonBool |> jsonArray |> jsonNull |> do {s <- jsonString; return (StrValue s)}
+            |> do {n <- jsonInt; return (IntValue n)}
+            |> do {obj <- jsonObject; return (ObjValue obj)}
 
 
 jsonArray :: Parser Value
 jsonArray = do {char '['; char ']'; return (ArrValue [])}
-            <|> do { char '['
+            |> do { char '['
                    ; x <- jsonValue
                    ; xs <- many (do {char ','; y <- jsonValue; return y})
                    ; char ']'
@@ -142,18 +142,18 @@ jsonArray = do {char '['; char ']'; return (ArrValue [])}
 
 digit1 :: Parser Int
 digit1 =     do { char '1'; return 1 }
-         <|> do { char '2'; return 2 }
-         <|> do { char '3'; return 3 }
-         <|> do { char '4'; return 4 }
-         <|> do { char '5'; return 5 }
-         <|> do { char '6'; return 6 }
-         <|> do { char '7'; return 7 }
-         <|> do { char '8'; return 8 }
-         <|> do { char '9'; return 9 }
+         |> do { char '2'; return 2 }
+         |> do { char '3'; return 3 }
+         |> do { char '4'; return 4 }
+         |> do { char '5'; return 5 }
+         |> do { char '6'; return 6 }
+         |> do { char '7'; return 7 }
+         |> do { char '8'; return 8 }
+         |> do { char '9'; return 9 }
 
 
 digit :: Parser Int
-digit = do {char '0'; return 0} <|> digit1
+digit = do {char '0'; return 0} |> digit1
 
 
 jsonInt :: Parser Int
@@ -161,17 +161,17 @@ jsonInt = do { char '-'
              ; n <- jsonPositiveInt
              ; return (-n)
              }
-          <|> jsonPositiveInt
+          |> jsonPositiveInt
     where jsonPositiveInt :: Parser Int
           jsonPositiveInt =     do { l <- many1 digit1
                                    ; return (foldl (\acc d -> acc * 10 + d) 0 l)
                                    }
-                            <|> do {char '0'; return 0}
+                            |> do {char '0'; return 0}
 
 
 jsonObject :: Parser Object
 jsonObject = do {char '{'; char '}'; return []}
-             <|> do { char '{'
+             |> do { char '{'
                     ; s <- jsonString
                     ; char ':'
                     ; v <- jsonValue
