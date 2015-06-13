@@ -133,15 +133,15 @@ jsonValue = jsonBool |> jsonArray |> jsonNull |> do {s <- jsonString; return (St
 jsonArray :: Parser Value
 jsonArray = do {char '['; char ']'; return (ArrValue [])}
             |> do { char '['
-                   ; x <- jsonValue
-                   ; xs <- many (do {char ','; y <- jsonValue; return y})
-                   ; char ']'
-                   ; return (ArrValue (x:xs))
-                   }
+                  ; x <- jsonValue
+                  ; xs <- many (do {char ','; y <- jsonValue; return y})
+                  ; char ']'
+                  ; return (ArrValue (x:xs))
+                  }
 
 
 digit1 :: Parser Int
-digit1 =     do { char '1'; return 1 }
+digit1 =    do { char '1'; return 1 }
          |> do { char '2'; return 2 }
          |> do { char '3'; return 3 }
          |> do { char '4'; return 4 }
@@ -163,20 +163,20 @@ jsonInt = do { char '-'
              }
           |> jsonPositiveInt
     where jsonPositiveInt :: Parser Int
-          jsonPositiveInt =     do { l <- many1 digit1
-                                   ; return (foldl (\acc d -> acc * 10 + d) 0 l)
-                                   }
+          jsonPositiveInt =    do { l <- many1 digit1
+                                  ; return (foldl (\acc d -> acc * 10 + d) 0 l)
+                                  }
                             |> do {char '0'; return 0}
 
 
 jsonObject :: Parser Object
 jsonObject = do {char '{'; char '}'; return []}
              |> do { char '{'
-                    ; s <- jsonString
-                    ; char ':'
-                    ; v <- jsonValue
-                    ; let x = (s, v)
-                    ; xs <- many (do {char ','; s <- jsonString; char ':'; v <- jsonValue; return (s, v)})
-                    ; char '}'
-                    ; return (x:xs)
-                    }
+                   ; s <- jsonString
+                   ; char ':'
+                   ; v <- jsonValue
+                   ; let x = (s, v)
+                   ; xs <- many (do {char ','; s <- jsonString; char ':'; v <- jsonValue; return (s, v)})
+                   ; char '}'
+                   ; return (x:xs)
+                   }
